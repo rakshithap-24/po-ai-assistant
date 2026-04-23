@@ -1,5 +1,5 @@
 namespace sap.cap.poi;
-
+using {managed} from '@sap/cds/common';
 entity Vendor{
     key ID: UUID;
         name: String(100);
@@ -7,7 +7,7 @@ entity Vendor{
         rating: Integer;
 }
 
-entity PurchaseOrder {
+entity PurchaseOrder:managed {
   key ID               : UUID;
       poNumber         : String(30);
       description      : String(500);
@@ -16,5 +16,7 @@ entity PurchaseOrder {
       status           : String(30);
       riskSummary      : String(1000);
       aiRecommendation : String(1000);
+      approvedBy       :String(100);
+      approvedAt       : Timestamp;
       vendor           : Association to Vendor;
 }

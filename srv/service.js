@@ -23,9 +23,13 @@ module.exports = cds.service.impl(async function () {
       req.error(404, 'Purchase Order not found')
     }
 
-    await tx.update(PurchaseOrder)
-      .set({ status: 'Approved' })
-      .where({ ID })
+   await tx.update(PurchaseOrder)
+  .set({
+    status: 'Approved',
+    approvedBy: 'Manager1',
+    approvedAt: new Date()
+  })
+  .where({ ID })
 
     return `PO ${ID} approved successfully`
   })
