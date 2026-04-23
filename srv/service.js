@@ -31,7 +31,30 @@ module.exports = cds.service.impl(async function () {
   })
 
   this.on('generatePOInsight', async (req) => {
-    const { ID } = req.data
-    return `AI insight placeholder for PO ${ID}`
-  })
+  const { ID } = req.data
+  const tx = cds.tx(req)
+
+  const po = await tx.read(PurchaseOrder).where({ ID })
+  if (!po.length) req.error(404, 'Purchase Order not found')
+
+  const currentPO = po[0]
+
+  let summary = ''
+  let recommendation = ''
+
+  if (currentPO.amount > 2000) {
+    summary = 'High-value purchase order requiring additional review.'
+    recommendation = 'Recommended for manager review before approval.'
+  } else {
+    summary = 'Standard purchase order with low financial risk.'
+    recommendation = 'Can proceed through normal approval flow.'
+  }
+
+  await tx.update(PurchaseOrder).set({
+    riskSummary: summary,
+    aiRecommendation: recommendation
+  }).where({ ID })
+
+  return summary
+})
 })
