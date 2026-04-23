@@ -12,5 +12,12 @@
   "scripts": {
     "start": "cds-serve"
   },
-  "private": true
+  "private": true,
+  "cds": {
+    "requires": {
+      "[hybrid]": {
+        "db": "hana"
+      }
+    }
+  }
 }
