@@ -1,0 +1,6 @@
+POST http://localhost:4004/odata/v4/po/approvePO
+Content-Type: application/json
+
+{
+  "ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+}
