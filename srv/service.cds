@@ -5,5 +5,6 @@ service POService{
     entity PurchaseOrder as projection on db.PurchaseOrder;
 
     action approvePO(ID:UUID) returns String;
+    action rejectPO(ID:UUID) returns String;
     action generatePOInsight(ID:UUID) returns String;
 }
