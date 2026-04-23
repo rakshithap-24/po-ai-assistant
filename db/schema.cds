@@ -3,8 +3,8 @@ namespace sap.cap.poi;
 entity Vendor{
     key ID: UUID;
         name: String(100);
-        country:String(50);
-        rating:Integer;
+        country: String(50);
+        rating: Integer;
 }
 
 entity PurchaseOrder{
