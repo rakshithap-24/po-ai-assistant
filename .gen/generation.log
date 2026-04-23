@@ -1,0 +1,34 @@
+Starting CAP Project Generator...
+Using @sap/cds-dk [9.8.2] from /extbin/globals/pnpm/5/.pnpm/@sap+cds-dk@9.8.2_@eslint+js@10.0.1/node_modules/@sap/cds-dk
+Using @sap/generator-cap-project [2.0.5] from [/extbin/globals/pnpm/5/.pnpm/@sap+generator-cap-project@2.0.5_encoding@0.1.13_mem-fs@2.1.0_yeoman-environment@3.19.3_@types+node@25.6.0_/node_modules/@sap/generator-cap-project]
+Using root path [/home/user/projects]
+
+Creating project with hana, mta, nodejs
+
+Adding facet: nodejs
+Adding facet: mta
+Adding facet: hana
+
+Successfully initialized CAP project
+Continue with: code ai_purchase_order_assistant 
+
+
+Installing dependencies...
+
+added 269 packages, and audited 270 packages in 6s
+
+38 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+
+Finished installing dependencies
+
+Done setting up project ai_purchase_order_assistant
+Project is ready to use
+
