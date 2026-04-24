@@ -28,7 +28,7 @@ module.exports = cds.service.impl(async function () {
     await tx.update(PurchaseOrder)
       .set({
         status: 'Approved',
-        approvedBy: 'Manager1',
+        approvedBy: req.user.id || 'System',
         approvedAt: new Date()
       })
       .where({ ID })

@@ -1,22 +1,14 @@
-# Getting Started
+# 🚀 AI-Powered Purchase Order Assistant  
+### SAP CAP • SAP HANA Cloud • OData V4
 
-Welcome to your new CAP project.
+---
 
-It contains these folders and files, following our recommended project layout:
+## 📌 Overview
+This project is a **production-style backend application** built using **SAP Cloud Application Programming Model (CAP)** and **SAP HANA Cloud**.
 
-File or Folder | Purpose
----------|----------
-`app/` | content for UI frontends goes here
-`db/` | your domain models and data go here
-`srv/` | your service models and code go here
-`readme.md` | this getting started guide
+It simulates a **Purchase Order Management System** with:
+- Approval workflows  
+- Business validations  
+- Extensible architecture for AI-driven insights  
 
-## Next Steps
-
-- Open a new terminal and run `cds watch`
-- (in VS Code simply choose _**Terminal** > Run Task > cds watch_)
-- Start with your domain model, in a CDS file in `db/`
-
-## Learn More
-
-Learn more at <https://cap.cloud.sap>.
+---
