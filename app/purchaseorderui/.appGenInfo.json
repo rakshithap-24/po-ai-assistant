@@ -1,0 +1,28 @@
+{
+  "generationParameters": {
+    "generationDate": "Sat Apr 25 2026 03:40:21 GMT+0000 (Coordinated Universal Time)",
+    "generatorPlatform": "SAP Business Application Studio",
+    "serviceType": "Local CAP",
+    "metadataFilename": "",
+    "serviceUrl": "http://localhost:4004/odata/v4/po/",
+    "appName": "purchaseorderui",
+    "appTitle": "AI Purchase Order Assistant",
+    "appDescription": "Fiori UI for AI-assisted purchase order approval and insights",
+    "appNamespace": "po.assistant",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.147.1",
+    "enableEslint": true,
+    "enableTypeScript": false,
+    "showMockDataInfo": false,
+    "generatorVersion": "1.22.0",
+    "template": "List Report Page V4",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [
+      {
+        "type": "Main Entity",
+        "value": "PurchaseOrder"
+      }
+    ],
+    "launchText": "To launch the generated app, start your CAP project:  and navigate to the following location in your browser:\n\nhttp://localhost:4004/purchaseorderui/webapp/index.html"
+  }
+}
