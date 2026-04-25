@@ -1,90 +1,74 @@
 using POService as service from '../../srv/service';
+
 annotate service.PurchaseOrder with @(
-    UI.FieldGroup #GeneratedGroup : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Label : 'poNumber',
-                Value : poNumber,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'description',
-                Value : description,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'amount',
-                Value : amount,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'currency',
-                Value : currency,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'status',
-                Value : status,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'riskSummary',
-                Value : riskSummary,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'aiRecommendation',
-                Value : aiRecommendation,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'approvedBy',
-                Value : approvedBy,
-            },
-            {
-                $Type : 'UI.DataField',
-                Label : 'approvedAt',
-                Value : approvedAt,
-            },
-        ],
+    UI.HeaderInfo : {
+        TypeName       : 'Purchase Order',
+        TypeNamePlural : 'Purchase Orders',
+        Title          : { Value : poNumber },
+        Description    : { Value : description }
     },
+
+    UI.SelectionFields : [
+        poNumber,
+        vendor_ID,
+        status,
+        currency
+    ],
+
+    UI.LineItem : [
+        { $Type : 'UI.DataField', Label : 'PO Number',   Value : poNumber },
+        { $Type : 'UI.DataField', Label : 'Vendor',      Value : vendor.name },
+        { $Type : 'UI.DataField', Label : 'Description', Value : description },
+        { $Type : 'UI.DataField', Label : 'Amount',      Value : amount },
+        { $Type : 'UI.DataField', Label : 'Currency',    Value : currency },
+        { $Type : 'UI.DataField', Label : 'Status',      Value : status }
+    ],
+
     UI.Facets : [
         {
-            $Type : 'UI.ReferenceFacet',
-            ID : 'GeneratedFacet1',
-            Label : 'General Information',
-            Target : '@UI.FieldGroup#GeneratedGroup',
+            $Type  : 'UI.ReferenceFacet',
+            Label  : 'Purchase Order Details',
+            Target : '@UI.FieldGroup#PODetails'
         },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            Label  : 'AI Insights',
+            Target : '@UI.FieldGroup#AIInsights'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            Label  : 'Approval Details',
+            Target : '@UI.FieldGroup#ApprovalDetails'
+        }
     ],
-    UI.LineItem : [
-        {
-            $Type : 'UI.DataField',
-            Label : 'PO Number',
-            Value : poNumber,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'Description',
-            Value : description,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'Amount',
-            Value : amount,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'Currency',
-            Value : currency,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'Status',
-            Value : status,
-        },
-    ],
+
+    UI.FieldGroup #PODetails : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            { $Type : 'UI.DataField', Label : 'PO Number',      Value : poNumber },
+            { $Type : 'UI.DataField', Label : 'Vendor',         Value : vendor.name },
+            { $Type : 'UI.DataField', Label : 'Description',    Value : description },
+            { $Type : 'UI.DataField', Label : 'Amount',         Value : amount },
+            { $Type : 'UI.DataField', Label : 'Currency',       Value : currency },
+            { $Type : 'UI.DataField', Label : 'Status',         Value : status }
+        ]
+    },
+
+    UI.FieldGroup #AIInsights : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            { $Type : 'UI.DataField', Label : 'Risk Summary',      Value : riskSummary },
+            { $Type : 'UI.DataField', Label : 'AI Recommendation', Value : aiRecommendation }
+        ]
+    },
+
+    UI.FieldGroup #ApprovalDetails : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            { $Type : 'UI.DataField', Label : 'Approved By', Value : approvedBy },
+            { $Type : 'UI.DataField', Label : 'Approved At', Value : approvedAt }
+        ]
+    }
 );
 
 annotate service.PurchaseOrder with {
@@ -95,21 +79,20 @@ annotate service.PurchaseOrder with {
             {
                 $Type : 'Common.ValueListParameterInOut',
                 LocalDataProperty : vendor_ID,
-                ValueListProperty : 'ID',
+                ValueListProperty : 'ID'
             },
             {
                 $Type : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty : 'name',
+                ValueListProperty : 'name'
             },
             {
                 $Type : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty : 'country',
+                ValueListProperty : 'country'
             },
             {
                 $Type : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty : 'rating',
-            },
-        ],
+                ValueListProperty : 'rating'
+            }
+        ]
     }
 };
-
