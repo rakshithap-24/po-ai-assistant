@@ -25,7 +25,8 @@ annotate service.PurchaseOrder with @(
         { $Type : 'UI.DataField', Label : 'Approved By', Value : approvedBy },
 { $Type : 'UI.DataField', Label : 'Approved At', Value : approvedAt },
         { $Type : 'UI.DataFieldForAction', Label : 'Approve',      Action : 'POService.approvePO'},
-        { $Type : 'UI.DataFieldForAction', Label : 'Reject',      Action : 'POService.rejectPO'}
+        { $Type : 'UI.DataFieldForAction', Label : 'Reject',      Action : 'POService.rejectPO'},
+        { $Type : 'UI.DataFieldForAction', Label : 'Generate AI Insights',      Action : 'POService.generatePOInsight'}
     ],
 
     UI.Facets : [

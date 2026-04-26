@@ -63,31 +63,25 @@ module.exports = cds.service.impl(async function () {
     return `PO ${ID} rejected successfully`
   })
 
-  this.on('generatePOInsight', async (req) => {
-    const { ID } = req.data
+  this.on('generatePOInsight','PurchaseOrder', async (req) => {
+    const ID = req.params[0].ID;
     const tx = cds.tx(req)
 
     const po = await tx.read(PurchaseOrder).where({ ID })
     if (!po.length) req.error(404, 'Purchase Order not found')
 
-    const currentPO = po[0]
+    const riskSummary = `PO ${po.poNumber} has amount ${po.amount} ${po.currency}. Current status is ${po.status}.`;
+    const aiRecommendation = po.amount > 10000
+        ? 'High-value purchase order. Manual review is recommended before approval.'
+        : 'Purchase order amount is within normal range. Approval can proceed if vendor details are valid.';
 
-    let summary = ''
-    let recommendation = ''
+    await UPDATE('sap.cap.poi.PurchaseOrder')
+        .set({
+            riskSummary,
+            aiRecommendation
+        })
+        .where({ ID });
 
-    if (currentPO.amount > 2000) {
-      summary = 'High-value purchase order requiring additional review.'
-      recommendation = 'Recommended for manager review before approval.'
-    } else {
-      summary = 'Standard purchase order with low financial risk.'
-      recommendation = 'Can proceed through normal approval flow.'
-    }
-
-    await tx.update(PurchaseOrder).set({
-      riskSummary: summary,
-      aiRecommendation: recommendation
-    }).where({ ID })
-
-    return summary
+    return 'AI insight generated successfully';
   })
 })
