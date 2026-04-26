@@ -3,7 +3,7 @@ POST http://localhost:4004/odata/v4/po/approvePO
 Content-Type: application/json
 
 {
-  "ID": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+  "ID": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb010"
 }
 
 ### Generate PO Insight

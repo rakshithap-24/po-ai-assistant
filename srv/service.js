@@ -8,8 +8,9 @@ module.exports = cds.service.impl(async function () {
     if (req.data.amount <= 0) req.error(400, 'Amount must be greater than 0')
   })
 
-  this.on('approvePO', async (req) => {
-    const { ID } = req.data
+  this.on('approvePO','PurchaseOrder', async (req) => {
+    console.log('Approve action triggered');
+    const ID = req.params[0].ID;
     const tx = cds.tx(req)
 
     const po = await tx.read(PurchaseOrder).where({ ID })
@@ -36,8 +37,8 @@ module.exports = cds.service.impl(async function () {
     return `PO ${ID} approved successfully`
   })
 
-  this.on('rejectPO', async (req) => {
-    const { ID } = req.data
+  this.on('rejectPO','PurchaseOrder', async (req) => {
+    const ID = req.params[0].ID;
     const tx = cds.tx(req)
 
     const po = await tx.read(PurchaseOrder).where({ ID })

@@ -21,7 +21,11 @@ annotate service.PurchaseOrder with @(
         { $Type : 'UI.DataField', Label : 'Description', Value : description },
         { $Type : 'UI.DataField', Label : 'Amount',      Value : amount },
         { $Type : 'UI.DataField', Label : 'Currency',    Value : currency },
-        { $Type : 'UI.DataField', Label : 'Status',      Value : status }
+        { $Type : 'UI.DataField', Label : 'Status',      Value : status},
+        { $Type : 'UI.DataField', Label : 'Approved By', Value : approvedBy },
+{ $Type : 'UI.DataField', Label : 'Approved At', Value : approvedAt },
+        { $Type : 'UI.DataFieldForAction', Label : 'Approve',      Action : 'POService.approvePO'},
+        { $Type : 'UI.DataFieldForAction', Label : 'Reject',      Action : 'POService.rejectPO'}
     ],
 
     UI.Facets : [
@@ -70,6 +74,7 @@ annotate service.PurchaseOrder with @(
         ]
     }
 );
+
 
 annotate service.PurchaseOrder with {
     vendor @Common.ValueList : {
