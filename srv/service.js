@@ -7,7 +7,7 @@ module.exports = cds.service.impl(async function () {
   const { PurchaseOrder } = this.entities;
 
   /**
-   * Default values and basic validation before creating a Purchase Order.
+   * Set default values and validate Purchase Order before creation.
    */
   this.before("CREATE", "PurchaseOrder", async (req) => {
     if (!req.data.status) {
@@ -20,7 +20,7 @@ module.exports = cds.service.impl(async function () {
   });
 
   /**
-   * Approve Purchase Order action.
+   * Approve Purchase Order.
    */
   this.on("approvePO", "PurchaseOrder", async (req) => {
     console.log("Approve action triggered");
@@ -44,6 +44,13 @@ module.exports = cds.service.impl(async function () {
       return req.error(400, "Rejected Purchase Order cannot be approved");
     }
 
+    if (currentPO.aiRecommendation === "Reject") {
+      return req.error(
+        400,
+        "Purchase Order cannot be approved because AI recommendation is Reject"
+      );
+    }
+
     await tx
       .update(PurchaseOrder)
       .set({
@@ -57,7 +64,7 @@ module.exports = cds.service.impl(async function () {
   });
 
   /**
-   * Reject Purchase Order action.
+   * Reject Purchase Order.
    */
   this.on("rejectPO", "PurchaseOrder", async (req) => {
     console.log("Reject action triggered");
@@ -92,13 +99,17 @@ module.exports = cds.service.impl(async function () {
   });
 
   /**
-   * Generate AI Insight action.
+   * Generate AI Insight for selected Purchase Order.
    *
-   * This action:
-   * 1. Reads the selected Purchase Order.
-   * 2. Calls OpenRouter through llmProxy.js.
-   * 3. Receives structured JSON.
-   * 4. Saves short values into HANA-safe fields.
+   * Flow:
+   * 1. Read selected PO.
+   * 2. Call OpenRouter/Claude through llmProxy.js.
+   * 3. Receive structured JSON:
+   *    - riskSummary
+   *    - recommendation
+   *    - riskLevel
+   *    - reason
+   * 4. Save values into PurchaseOrder.
    */
   this.on("generatePOInsight", "PurchaseOrder", async (req) => {
     console.log("Generate AI Insight action triggered");
@@ -117,21 +128,30 @@ module.exports = cds.service.impl(async function () {
     try {
       const aiInsight = await generatePurchaseOrderInsight(currentPO);
 
-      const riskSummary = [
-        aiInsight.riskSummary,
-        aiInsight.reason ? `Reason: ${aiInsight.reason}` : ""
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .substring(0, 1000);
+      const riskSummary = aiInsight.riskSummary
+        ? aiInsight.riskSummary.substring(0, 1000)
+        : "AI risk summary not available.";
 
-      const aiRecommendation = aiInsight.recommendation.substring(0, 1000);
+      const aiRecommendation = aiInsight.recommendation
+        ? aiInsight.recommendation.substring(0, 1000)
+        : "Review";
+
+      const aiReason = aiInsight.reason
+        ? aiInsight.reason.substring(0, 1000)
+        : "AI reason not available.";
+
+      const riskLevel = aiInsight.riskLevel
+        ? aiInsight.riskLevel.substring(0, 20)
+        : "Medium";
 
       await tx
         .update(PurchaseOrder)
         .set({
           riskSummary,
-          aiRecommendation
+          aiRecommendation,
+          aiReason,
+          riskLevel,
+          aiGeneratedAt: new Date()
         })
         .where({ ID });
 
