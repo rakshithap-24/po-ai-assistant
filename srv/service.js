@@ -1,87 +1,148 @@
-const cds = require('@sap/cds')
+require("dotenv").config();
+
+const cds = require("@sap/cds");
+const { generatePurchaseOrderInsight } = require("./ai/llmProxy");
 
 module.exports = cds.service.impl(async function () {
-  const { PurchaseOrder } = this.entities
+  const { PurchaseOrder } = this.entities;
 
-  this.before('CREATE', 'PurchaseOrder', async (req) => {
-    if (!req.data.status) req.data.status = 'Draft'
-    if (req.data.amount <= 0) req.error(400, 'Amount must be greater than 0')
-  })
+  /**
+   * Default values and basic validation before creating a Purchase Order.
+   */
+  this.before("CREATE", "PurchaseOrder", async (req) => {
+    if (!req.data.status) {
+      req.data.status = "Draft";
+    }
 
-  this.on('approvePO','PurchaseOrder', async (req) => {
-    console.log('Approve action triggered');
+    if (req.data.amount <= 0) {
+      return req.error(400, "Amount must be greater than 0");
+    }
+  });
+
+  /**
+   * Approve Purchase Order action.
+   */
+  this.on("approvePO", "PurchaseOrder", async (req) => {
+    console.log("Approve action triggered");
+
     const ID = req.params[0].ID;
-    const tx = cds.tx(req)
+    const tx = cds.tx(req);
 
-    const po = await tx.read(PurchaseOrder).where({ ID })
-    if (!po.length) req.error(404, 'Purchase Order not found')
+    const po = await tx.read(PurchaseOrder).where({ ID });
 
-    const currentPO = po[0]
-
-    if (currentPO.status === 'Approved') {
-      req.error(400, 'Purchase Order is already approved')
+    if (!po.length) {
+      return req.error(404, "Purchase Order not found");
     }
 
-    if (currentPO.status === 'Rejected') {
-      req.error(400, 'Rejected Purchase Order cannot be approved')
+    const currentPO = po[0];
+
+    if (currentPO.status === "Approved") {
+      return req.error(400, "Purchase Order is already approved");
     }
 
-    await tx.update(PurchaseOrder)
+    if (currentPO.status === "Rejected") {
+      return req.error(400, "Rejected Purchase Order cannot be approved");
+    }
+
+    await tx
+      .update(PurchaseOrder)
       .set({
-        status: 'Approved',
-        approvedBy: req.user.id || 'System',
+        status: "Approved",
+        approvedBy: req.user?.id || "System",
         approvedAt: new Date()
       })
-      .where({ ID })
+      .where({ ID });
 
-    return `PO ${ID} approved successfully`
-  })
+    return `PO ${currentPO.poNumber || ID} approved successfully`;
+  });
 
-  this.on('rejectPO','PurchaseOrder', async (req) => {
+  /**
+   * Reject Purchase Order action.
+   */
+  this.on("rejectPO", "PurchaseOrder", async (req) => {
+    console.log("Reject action triggered");
+
     const ID = req.params[0].ID;
-    const tx = cds.tx(req)
+    const tx = cds.tx(req);
 
-    const po = await tx.read(PurchaseOrder).where({ ID })
-    if (!po.length) req.error(404, 'Purchase Order not found')
+    const po = await tx.read(PurchaseOrder).where({ ID });
 
-    const currentPO = po[0]
-
-    if (currentPO.status === 'Rejected') {
-      req.error(400, 'Purchase Order is already rejected')
+    if (!po.length) {
+      return req.error(404, "Purchase Order not found");
     }
 
-    if (currentPO.status === 'Approved') {
-      req.error(400, 'Approved Purchase Order cannot be rejected')
+    const currentPO = po[0];
+
+    if (currentPO.status === "Rejected") {
+      return req.error(400, "Purchase Order is already rejected");
     }
 
-    await tx.update(PurchaseOrder)
+    if (currentPO.status === "Approved") {
+      return req.error(400, "Approved Purchase Order cannot be rejected");
+    }
+
+    await tx
+      .update(PurchaseOrder)
       .set({
-        status: 'Rejected'
+        status: "Rejected"
       })
-      .where({ ID })
+      .where({ ID });
 
-    return `PO ${ID} rejected successfully`
-  })
+    return `PO ${currentPO.poNumber || ID} rejected successfully`;
+  });
 
-  this.on('generatePOInsight','PurchaseOrder', async (req) => {
+  /**
+   * Generate AI Insight action.
+   *
+   * This action:
+   * 1. Reads the selected Purchase Order.
+   * 2. Calls OpenRouter through llmProxy.js.
+   * 3. Receives structured JSON.
+   * 4. Saves short values into HANA-safe fields.
+   */
+  this.on("generatePOInsight", "PurchaseOrder", async (req) => {
+    console.log("Generate AI Insight action triggered");
+
     const ID = req.params[0].ID;
-    const tx = cds.tx(req)
+    const tx = cds.tx(req);
 
-    const po = await tx.read(PurchaseOrder).where({ ID })
-    if (!po.length) req.error(404, 'Purchase Order not found')
+    const po = await tx.read(PurchaseOrder).where({ ID });
 
-    const riskSummary = `PO ${po.poNumber} has amount ${po.amount} ${po.currency}. Current status is ${po.status}.`;
-    const aiRecommendation = po.amount > 10000
-        ? 'High-value purchase order. Manual review is recommended before approval.'
-        : 'Purchase order amount is within normal range. Approval can proceed if vendor details are valid.';
+    if (!po.length) {
+      return req.error(404, "Purchase Order not found");
+    }
 
-    await UPDATE('sap.cap.poi.PurchaseOrder')
+    const currentPO = po[0];
+
+    try {
+      const aiInsight = await generatePurchaseOrderInsight(currentPO);
+
+      const riskSummary = [
+        aiInsight.riskSummary,
+        aiInsight.reason ? `Reason: ${aiInsight.reason}` : ""
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .substring(0, 1000);
+
+      const aiRecommendation = aiInsight.recommendation.substring(0, 1000);
+
+      await tx
+        .update(PurchaseOrder)
         .set({
-            riskSummary,
-            aiRecommendation
+          riskSummary,
+          aiRecommendation
         })
         .where({ ID });
 
-    return 'AI insight generated successfully';
-  })
-})
+      return `AI insight generated successfully: ${aiRecommendation}`;
+    } catch (error) {
+      console.error("Generate AI Insight failed:", error);
+
+      return req.error(
+        500,
+        `AI insight generation failed: ${error.message}`
+      );
+    }
+  });
+});
