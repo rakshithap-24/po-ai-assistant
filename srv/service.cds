@@ -24,4 +24,5 @@ service POService {
             ]}
             action generatePOInsight() returns String;
         };
+       action importLiveProcurementData(limit: Integer, page: Integer) returns array of PurchaseOrder;
 }

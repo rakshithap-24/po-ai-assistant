@@ -17,6 +17,10 @@ entity PurchaseOrder : managed {
       currency         : String(5);
       status           : String(30);
 
+      externalAwardId  : String(120);
+      externalSource   : String(100);
+      importedAt       : Timestamp;
+
       riskSummary      : String(1000);
       aiRecommendation : String(1000);
       aiReason         : String(1000);

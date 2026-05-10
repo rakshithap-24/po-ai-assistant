@@ -127,7 +127,13 @@
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable"
+                    "type": "ResponsiveTable",
+                    "selectionMode": "Multi",
+                    "personalization": {
+                      "column": true,
+                      "sort": true,
+                      "filter": true
+                    }
                   }
                 }
               }
