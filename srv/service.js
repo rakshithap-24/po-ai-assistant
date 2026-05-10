@@ -50,7 +50,7 @@ function buildPONumber(externalAwardId) {
 }
 
 module.exports = cds.service.impl(async function () {
-  const { PurchaseOrder, Vendor } = this.entities;
+  const { PurchaseOrder, Vendor, LiveImportState } = this.entities;
 
   /**
    * Set default values and validate Purchase Order before creation.
@@ -68,27 +68,58 @@ module.exports = cds.service.impl(async function () {
   /**
    * Import live procurement-like data from USAspending API.
    *
-   * Flow:
-   * 1. Fetch live award/procurement records.
-   * 2. Create Vendor if not already available.
-   * 3. Create PurchaseOrder in SAP HANA Cloud.
-   * 4. Skip duplicate records using externalAwardId.
+   * Improved flow:
+   * 1. Read last imported USAspending page from HANA.
+   * 2. If page is not passed, automatically import the next page.
+   * 3. Fetch live award/procurement records.
+   * 4. Create Vendor if not already available.
+   * 5. Create PurchaseOrder in SAP HANA Cloud.
+   * 6. Skip duplicate records using externalAwardId.
+   * 7. Update LiveImportState in HANA.
    */
   this.on("importLiveProcurementData", async (req) => {
-    console.log("Import Live Procurement Data action triggered");
+  console.log("Import Live Procurement Data action triggered");
 
-    const tx = cds.tx(req);
+  const tx = cds.tx(req);
+  const IMPORT_STATE_ID = "USA_SPENDING_PO_IMPORT";
 
-    try {
-      const requestedLimit = Number(req.data?.limit || 50);
-      const importLimit = Math.min(requestedLimit, 100);
+  try {
+    const requestedLimit = Number(req.data?.limit || 50);
+    const targetInsertCount = Math.min(requestedLimit, 100);
 
-      const requestedPage = Number(req.data?.page || 1);
-      const importPage = Math.max(requestedPage, 1);
+    let importState = await tx.run(
+      SELECT.one.from(LiveImportState).where({ ID: IMPORT_STATE_ID })
+    );
 
-      const liveAwards = await fetchLiveProcurementAwards(importLimit, importPage);
+    let currentPage = importState?.lastPage
+      ? Number(importState.lastPage) + 1
+      : 1;
 
-      const importedPurchaseOrders = [];
+    const startPage = currentPage;
+
+    let insertedCount = 0;
+    let duplicateSkippedCount = 0;
+    let invalidSkippedCount = 0;
+    let lastProcessedPage = currentPage - 1;
+
+    // Safety: scan up to 10 API pages per click to find 50 new records.
+    const maxPagesToScan = 10;
+    let pagesScanned = 0;
+
+    while (insertedCount < targetInsertCount && pagesScanned < maxPagesToScan) {
+      console.log(
+        `Fetching USAspending page ${currentPage}, target new records: ${targetInsertCount}`
+      );
+
+      const liveAwards = await fetchLiveProcurementAwards(
+        targetInsertCount,
+        currentPage
+      );
+
+      if (!liveAwards || !liveAwards.length) {
+        console.log(`No records returned from USAspending page ${currentPage}`);
+        break;
+      }
 
       for (const award of liveAwards) {
         const rawAwardId = getAwardValue(
@@ -133,25 +164,19 @@ module.exports = cds.service.impl(async function () {
         );
 
         if (!externalAwardId || amount <= 0) {
-          console.warn("Skipping invalid live award record:", award);
+          invalidSkippedCount++;
           continue;
         }
 
-        /**
-         * Skip duplicate imports.
-         */
         const existingPO = await tx.run(
           SELECT.one.from(PurchaseOrder).where({ externalAwardId })
         );
 
         if (existingPO) {
-          importedPurchaseOrders.push(existingPO);
+          duplicateSkippedCount++;
           continue;
         }
 
-        /**
-         * Find or create vendor.
-         */
         let vendor = await tx.run(
           SELECT.one.from(Vendor).where({ name: vendorName })
         );
@@ -167,9 +192,6 @@ module.exports = cds.service.impl(async function () {
           await tx.run(INSERT.into(Vendor).entries(vendor));
         }
 
-        /**
-         * Create Purchase Order from live data.
-         */
         const po = {
           ID: cds.utils.uuid(),
           poNumber: buildPONumber(externalAwardId),
@@ -184,8 +206,10 @@ module.exports = cds.service.impl(async function () {
 
           riskSummary: "Pending AI risk analysis.",
           aiRecommendation: "Pending",
-          aiReason: "Live procurement data imported. AI insight has not been generated yet.",
-          riskLevel: amount >= 50000 ? "High" : amount >= 15000 ? "Medium" : "Low",
+          aiReason:
+            "Live procurement data imported. AI insight has not been generated yet.",
+          riskLevel:
+            amount >= 50000 ? "High" : amount >= 15000 ? "Medium" : "Low",
           aiGeneratedAt: null,
 
           approvedBy: null,
@@ -200,30 +224,68 @@ module.exports = cds.service.impl(async function () {
         };
 
         await tx.run(INSERT.into(PurchaseOrder).entries(po));
+        insertedCount++;
 
-        const insertedPO = await tx.run(
-          SELECT.one.from(PurchaseOrder).where({ ID: po.ID })
-        );
-
-        importedPurchaseOrders.push(insertedPO);
+        if (insertedCount >= targetInsertCount) {
+          break;
+        }
       }
 
-      if (!importedPurchaseOrders.length) {
-        return req.error(404, "No valid live procurement records were imported.");
-      }
+      lastProcessedPage = currentPage;
+      currentPage++;
+      pagesScanned++;
+    }
 
-      console.log(`Imported/returned ${importedPurchaseOrders.length} live PO records`);
-
-      return importedPurchaseOrders;
-    } catch (error) {
-      console.error("Live procurement import failed:", error);
-
-      return req.error(
-        500,
-        `Live procurement import failed: ${error.message}`
+    if (importState) {
+      await tx.run(
+        UPDATE(LiveImportState)
+          .set({
+            source: "USAspending.gov API",
+            lastPage: lastProcessedPage,
+            lastLimit: targetInsertCount,
+            lastRunAt: new Date(),
+            modifiedAt: new Date(),
+            modifiedBy: "live.import"
+          })
+          .where({ ID: IMPORT_STATE_ID })
+      );
+    } else {
+      await tx.run(
+        INSERT.into(LiveImportState).entries({
+          ID: IMPORT_STATE_ID,
+          source: "USAspending.gov API",
+          lastPage: lastProcessedPage,
+          lastLimit: targetInsertCount,
+          lastRunAt: new Date(),
+          createdAt: new Date(),
+          createdBy: "live.import",
+          modifiedAt: new Date(),
+          modifiedBy: "live.import"
+        })
       );
     }
-  });
+
+    return {
+      insertedCount,
+      duplicateSkippedCount,
+      invalidSkippedCount,
+      startPage,
+      endPage: lastProcessedPage,
+      nextPage: lastProcessedPage + 1,
+      message:
+        insertedCount > 0
+          ? `Successfully imported ${insertedCount} new live procurement records.`
+          : "No new records were inserted. Existing duplicate records were skipped."
+    };
+  } catch (error) {
+    console.error("Live procurement import failed:", error);
+
+    return req.error(
+      500,
+      `Live procurement import failed: ${error.message}`
+    );
+  }
+});
 
   /**
    * Approve Purchase Order.

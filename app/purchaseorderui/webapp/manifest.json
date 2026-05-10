@@ -117,6 +117,7 @@
             "settings": {
               "contextPath": "/PurchaseOrder",
               "variantManagement": "Page",
+              "initialLoad": "Enabled",
               "navigation": {
                 "PurchaseOrder": {
                   "detail": {
@@ -129,10 +130,20 @@
                   "tableSettings": {
                     "type": "ResponsiveTable",
                     "selectionMode": "Multi",
+                    "growingThreshold": 50,
                     "personalization": {
                       "column": true,
                       "sort": true,
                       "filter": true
+                    }
+                  },
+                  "actions": {
+                    "ImportLiveProcurementData": {
+                      "text": "Import Live Procurement Data",
+                     "press": "po.assistant.purchaseorderui.ext.controller.ListReportExt.importLiveProcurementData",
+                      "requiresSelection": false,
+                      "visible": true,
+                      "enabled": true
                     }
                   }
                 }

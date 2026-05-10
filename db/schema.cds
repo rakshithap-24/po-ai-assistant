@@ -32,3 +32,10 @@ entity PurchaseOrder : managed {
 
       vendor           : Association to Vendor;
 }
+entity LiveImportState : managed {
+  key ID        : String(50);
+      source    : String(100);
+      lastPage  : Integer;
+      lastLimit : Integer;
+      lastRunAt : Timestamp;
+}

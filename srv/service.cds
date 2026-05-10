@@ -1,7 +1,19 @@
 using {sap.cap.poi as db} from '../db/schema';
 
+type ImportLiveProcurementResult {
+  insertedCount         : Integer;
+  duplicateSkippedCount : Integer;
+  invalidSkippedCount   : Integer;
+  startPage             : Integer;
+  endPage               : Integer;
+  nextPage              : Integer;
+  message               : String;
+}
+
 service POService {
-    entity Vendor        as projection on db.Vendor;
+    entity Vendor as projection on db.Vendor;
+
+    entity LiveImportState as projection on db.LiveImportState;
 
     entity PurchaseOrder as projection on db.PurchaseOrder
         actions {
@@ -10,10 +22,10 @@ service POService {
                 'approvedBy',
                 'approvedAt'
             ]}
-            action approvePO()         returns String;
+            action approvePO() returns PurchaseOrder;
 
             @Common.SideEffects: {TargetProperties: ['status']}
-            action rejectPO()          returns String;
+            action rejectPO() returns PurchaseOrder;
 
             @Common.SideEffects: {TargetProperties: [
                 'riskSummary',
@@ -22,7 +34,8 @@ service POService {
                 'riskLevel',
                 'aiGeneratedAt'
             ]}
-            action generatePOInsight() returns String;
+            action generatePOInsight() returns PurchaseOrder;
         };
-       action importLiveProcurementData(limit: Integer, page: Integer) returns array of PurchaseOrder;
+
+    action importLiveProcurementData(limit: Integer) returns ImportLiveProcurementResult;
 }
