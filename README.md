@@ -1,52 +1,99 @@
-# 🚀 AI-Powered Purchase Order Assistant
+# AI-Powered Purchase Order Assistant
 
-**SAP CAP • SAP HANA Cloud • OData V4 • SAP Fiori Elements • Generative AI**
-
----
-
-## 📌 Overview
-
-The **AI-Powered Purchase Order Assistant** is a production-style SAP CAP application that simulates an enterprise Purchase Order review and approval process.
-
-The application allows business users to manage purchase orders, approve or reject them, and generate AI-driven purchase order risk insights directly from a SAP Fiori UI.
-
-The project demonstrates how SAP CAP, SAP HANA Cloud, OData V4, SAP Fiori Elements, and Generative AI can be combined to build an intelligent enterprise application.
+A full-stack SAP BTP application that combines **SAP CAP**, **SAP HANA Cloud**, **SAP Fiori/UI5**, **OData V4**, **live procurement data**, and **Generative AI** to support intelligent purchase order review, risk analysis, analytics, and approval decisions.
 
 ---
 
-## 🎯 Business Use Case
+## Project Overview
 
-In enterprise procurement systems, purchase orders often require review before approval. Manual review can be time-consuming, especially when approvers need to evaluate vendor risk, purchase amount, description, and current approval status.
+The **AI-Powered Purchase Order Assistant** is an enterprise-style procurement application built using SAP technologies. It helps business users review purchase orders, understand procurement risk, generate AI-driven recommendations, and approve or reject purchase orders through a user-friendly SAP Fiori interface.
 
-This application helps by:
-
-- Displaying purchase orders in a SAP Fiori List Report
-- Allowing users to approve or reject purchase orders
-- Generating AI-based risk insights for selected purchase orders
-- Persisting AI recommendations and risk details in SAP HANA Cloud
-- Refreshing the Fiori table automatically after backend actions
+The application opens with an **Analytics Dashboard**, loads a controlled live procurement dataset into **SAP HANA Cloud**, visualizes procurement KPIs, and allows users to navigate into the Purchase Orders page for operational actions.
 
 ---
 
-## 🧩 Key Features
+## Business Use Case
 
-### Purchase Order Management
+Procurement teams often review large volumes of purchase orders manually. Reviewers usually need to analyze:
 
-- View purchase orders from SAP HANA Cloud
-- Filter purchase orders by PO number, vendor, status, and currency
-- Display PO amount, currency, status, vendor, and AI risk fields
-- Delete purchase orders from the Fiori UI
+- Vendor details
+- Purchase order amount
+- Procurement description
+- Current approval status
+- Risk level
+- AI recommendation
+- Business justification
+- Approval/rejection history
 
-### Approval Workflow
+Manual review becomes difficult when purchase order volume increases. This project solves that by combining **live procurement data**, **SAP HANA persistence**, **dashboard analytics**, and **AI-generated risk insights** in one SAP application.
 
-- Approve purchase orders using a CAP bound action
-- Reject purchase orders using a CAP bound action
-- Prevent invalid approval and rejection flows
-- Store approval metadata such as approver and approval timestamp
+---
 
-### AI Insight Generation
+## Key Features
 
-The app includes a custom CAP bound action:
+### 1. Dashboard-First User Experience
+
+The application opens directly with the Analytics Dashboard.
+
+The dashboard gives users a quick business overview before they go into detailed purchase order processing.
+
+Dashboard highlights:
+
+- Total purchase orders
+- Total procurement spend
+- High-risk purchase orders
+- Pending approvals
+- AI-pending reviews
+- Live import status
+- Risk distribution chart
+- Approval status chart
+- Top vendors by spend
+- AI recommendation breakdown
+- High-risk purchase order overview
+
+---
+
+### 2. Controlled Live Dataset Loading
+
+The application integrates with live procurement-style data from **USAspending.gov**.
+
+When the dashboard opens, the backend checks whether SAP HANA Cloud already contains the required dataset. If the database has fewer than the configured target number of records, the backend loads additional records in controlled batches.
+
+Current dataset behavior:
+
+- Loads procurement records from an external API
+- Stores data in SAP HANA Cloud
+- Prevents duplicate records using `externalAwardId`
+- Tracks import progress using `LiveImportState`
+- Loads up to a controlled maximum dataset size, such as 2,000 records
+- Avoids repeated imports during normal navigation
+- Dashboard and Purchase Orders pages read from SAP HANA Cloud
+
+This provides a realistic enterprise-style data sync process without overloading the SAP trial environment.
+
+---
+
+### 3. SAP Fiori Purchase Order List
+
+The Purchase Orders page is built using SAP Fiori Elements List Report.
+
+Users can:
+
+- View all persisted purchase orders from SAP HANA Cloud
+- Search purchase orders
+- Filter by purchase order number, vendor, status, and currency
+- View amount, currency, status, risk level, AI recommendation, and AI reason
+- Navigate to purchase order detail pages
+- Generate AI insights
+- Approve purchase orders
+- Reject purchase orders
+- Return to the Analytics Dashboard
+
+---
+
+### 4. AI-Generated Purchase Order Risk Insights
+
+The application includes a custom CAP bound action:
 
 ```text
 generatePOInsight
