@@ -138,9 +138,9 @@
                     }
                   },
                   "actions": {
-                    "ImportLiveProcurementData": {
-                      "text": "Import Live Procurement Data",
-                     "press": "po.assistant.purchaseorderui.ext.controller.ListReportExt.importLiveProcurementData",
+                    "OpenAnalyticsDashboard": {
+                      "text": "Analytics Dashboard",
+                      "press": "po.assistant.purchaseorderui.ext.controller.ListReportExt.openAnalyticsDashboard",
                       "requiresSelection": false,
                       "visible": true,
                       "enabled": true

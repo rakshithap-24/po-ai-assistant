@@ -1,35 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>AI Purchase Order Assistant</title>
-    <style>
-        html, body, body > div, #container, #container-uiarea {
-            height: 100%;
-        }
-    </style>
-    <script
-        id="sap-ui-bootstrap"
-        src="https://sapui5.hana.ondemand.com/1.147.1/resources/sap-ui-core.js"
-        data-sap-ui-theme="sap_horizon"
-        data-sap-ui-resource-roots='{
-            "po.assistant.purchaseorderui": "./"
-        }'
-        data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"
-        data-sap-ui-compat-version="edge"
-        data-sap-ui-async="true"
-        data-sap-ui-frame-options="trusted"
-    ></script>
+  <meta charset="utf-8">
+  <title>AI Purchase Order Assistant</title>
+
+  <style>
+    html,
+    body,
+    #content {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+
+  <script
+    id="sap-ui-bootstrap"
+    src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+    data-sap-ui-theme="sap_horizon"
+    data-sap-ui-libs="sap.m,sap.ui.core,sap.viz,sap.fe.templates"
+    data-sap-ui-compat-version="edge"
+    data-sap-ui-async="true"
+    data-sap-ui-resourceroots='{
+      "po.assistant.purchaseorderui": "./"
+    }'>
+  </script>
+
+  <link rel="stylesheet" href="./css/analytics.css">
+
+  <script>
+    sap.ui.getCore().attachInit(function () {
+      const params = new URLSearchParams(window.location.search);
+      const page = params.get("page");
+
+      if (page === "purchaseorders") {
+        sap.ui.require([
+          "sap/ui/core/ComponentContainer"
+        ], function (ComponentContainer) {
+          new ComponentContainer({
+            name: "po.assistant.purchaseorderui",
+            manifest: true,
+            async: true,
+            height: "100%",
+            width: "100%",
+            displayBlock: true
+          }).placeAt("content");
+        });
+      } else {
+        sap.ui.require([
+          "sap/ui/core/mvc/XMLView"
+        ], function (XMLView) {
+          XMLView.create({
+            viewName: "po.assistant.purchaseorderui.ext.view.AnalyticsDashboard"
+          }).then(function (oView) {
+            oView.placeAt("content");
+          }).catch(function (error) {
+            console.error("Failed to load Analytics Dashboard:", error);
+            document.getElementById("content").innerHTML =
+              "<pre style='padding:20px;color:red;'>Failed to load dashboard. Check browser console.</pre>";
+          });
+        });
+      }
+    });
+  </script>
 </head>
-<body class="sapUiBody sapUiSizeCompact" id="content">
-    <div
-        data-sap-ui-component
-        data-name="po.assistant.purchaseorderui"
-        data-id="container"
-        data-settings='{"id" : "po.assistant.purchaseorderui"}'
-        data-handle-validation="true"
-    ></div>
+
+<body class="sapUiBody">
+  <div id="content"></div>
 </body>
 </html>

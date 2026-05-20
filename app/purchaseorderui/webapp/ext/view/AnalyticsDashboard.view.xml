@@ -1,0 +1,499 @@
+<mvc:View
+    id="analyticsDashboardView"
+    controllerName="po.assistant.purchaseorderui.ext.controller.AnalyticsDashboard"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:viz.data="sap.viz.ui5.data"
+    xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds">
+
+    <App id="analyticsApp">
+        <Page
+            id="analyticsDashboardPage"
+            title="AI Purchase Order Analytics Dashboard"
+            class="analyticsPage"
+            showNavButton="false">
+
+            <customHeader>
+                <Bar id="analyticsHeaderBar">
+                    
+
+                    <contentMiddle>
+                        <Title
+                            id="analyticsDashboardTitle"
+                            text="AI Purchase Order Analytics Dashboard" />
+                    </contentMiddle>
+
+                    <contentRight>
+                    <Button
+    id="backToPurchaseOrdersButton"
+    text="View Purchase Orders"
+    icon="sap-icon://detail-view"
+    type="Emphasized"
+    class="purchaseOrderNavButton"
+    press=".onOpenPurchaseOrders" />
+                        <Button
+                            id="refreshAnalyticsButton"
+                            text="Refresh"
+                            icon="sap-icon://refresh"
+                            press=".onRefresh" />
+                    </contentRight>
+                </Bar>
+            </customHeader>
+
+            <content>
+                <ScrollContainer
+                    id="analyticsScrollContainer"
+                    height="100%"
+                    vertical="true"
+                    horizontal="false">
+
+                    <VBox
+                        id="analyticsMainVBox"
+                        class="dashboardContainer">
+
+                        <MessageStrip
+                            id="analyticsInfoMessageStrip"
+                            text="Live procurement records are imported into SAP HANA Cloud and analyzed using AI-based purchase order risk insights."
+                            type="Information"
+                            showIcon="true"
+                            class="sapUiSmallMarginBottom" />
+
+                        <FlexBox
+                            id="kpiFlexBox"
+                            wrap="Wrap"
+                            class="kpiContainer">
+
+                            <GenericTile
+                                id="totalPOsTile"
+                                header="Total POs"
+                                subheader="All purchase orders"
+                                class="kpiTile kpiBlue">
+                                <tileContent>
+                                    <TileContent id="totalPOsTileContent">
+                                        <content>
+                                            <NumericContent
+                                                id="totalPOsNumericContent"
+                                                value="{summary>/totalPOs}"
+                                                icon="sap-icon://documents"
+                                                valueColor="Good" />
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+
+                            <GenericTile
+                                id="totalSpendTile"
+                                header="Total Spend"
+                                subheader="USD procurement value"
+                                class="kpiTile kpiPurple">
+                                <tileContent>
+                                    <TileContent id="totalSpendTileContent">
+                                        <content>
+                                            <NumericContent
+                                            id="totalSpendNumericContent"
+                                            value="{path: 'summary>/totalSpend', formatter: '.formatShortCurrency'}"
+                                            scale="USD"
+                                            icon="sap-icon://money-bills"
+                                            valueColor="Neutral" />
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+
+                            <GenericTile
+                                id="highRiskTile"
+                                header="High Risk"
+                                subheader="Needs attention"
+                                class="kpiTile kpiRed">
+                                <tileContent>
+                                    <TileContent id="highRiskTileContent">
+                                        <content>
+                                            <NumericContent
+                                                id="highRiskNumericContent"
+                                                value="{summary>/highRiskCount}"
+                                                icon="sap-icon://alert"
+                                                valueColor="Error" />
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+
+                            <GenericTile
+                                id="pendingTile"
+                                header="Pending"
+                                subheader="Awaiting decision"
+                                class="kpiTile kpiOrange">
+                                <tileContent>
+                                    <TileContent id="pendingTileContent">
+                                        <content>
+                                            <NumericContent
+                                                id="pendingNumericContent"
+                                                value="{summary>/pendingCount}"
+                                                icon="sap-icon://pending"
+                                                valueColor="Critical" />
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+
+                            <GenericTile
+                                id="aiPendingTile"
+                                header="AI Pending"
+                                subheader="Needs AI review"
+                                class="kpiTile kpiCyan">
+                                <tileContent>
+                                    <TileContent id="aiPendingTileContent">
+                                        <content>
+                                            <NumericContent
+                                                id="aiPendingNumericContent"
+                                                value="{summary>/aiPendingCount}"
+                                                icon="sap-icon://ai"
+                                                valueColor="Critical" />
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+
+                        </FlexBox>
+
+                        <Panel
+                            id="liveImportStatusPanel"
+                            headerText="Live Import Status"
+                            expandable="false"
+                            class="analyticsPanel">
+
+                            <HBox
+                                id="liveImportStatusHBox"
+                                wrap="Wrap">
+
+                                <ObjectStatus
+                                    id="liveImportSourceStatus"
+                                    title="Source"
+                                    text="{import>/source}"
+                                    state="Information"
+                                    class="sapUiSmallMarginEnd" />
+
+                                <ObjectStatus
+                                    id="liveImportLastPageStatus"
+                                    title="Last Imported Page"
+                                    text="{import>/lastPage}"
+                                    state="Success"
+                                    class="sapUiSmallMarginEnd" />
+
+                                <ObjectStatus
+                                    id="liveImportLastLimitStatus"
+                                    title="Last Batch Size"
+                                    text="{import>/lastLimit}"
+                                    state="Information"
+                                    class="sapUiSmallMarginEnd" />
+
+                                <ObjectStatus
+                                    id="liveImportLastRunStatus"
+                                    title="Last Run"
+                                    text="{import>/lastRunAt}"
+                                    state="None" />
+                            </HBox>
+
+                        </Panel>
+
+                        <FlexBox
+                            id="chartGridFlexBox"
+                            wrap="Wrap"
+                            class="chartGrid">
+
+                            <Panel
+                                id="riskDistributionPanel"
+                                headerText="Risk Distribution"
+                                class="chartCard">
+
+                                <viz:VizFrame
+                                    id="riskChart"
+                                    vizType="donut"
+                                    width="100%"
+                                    height="320px">
+
+                                    <viz:dataset>
+                                        <viz.data:FlattenedDataset
+                                            id="riskChartDataset"
+                                            data="{risk>/items}">
+
+                                            <viz.data:dimensions>
+                                                <viz.data:DimensionDefinition
+                                                    id="riskChartRiskLevelDimension"
+                                                    name="Risk Level"
+                                                    value="{risk>riskLevel}" />
+                                            </viz.data:dimensions>
+
+                                            <viz.data:measures>
+                                                <viz.data:MeasureDefinition
+                                                    id="riskChartCountMeasure"
+                                                    name="Count"
+                                                    value="{risk>count}" />
+                                            </viz.data:measures>
+
+                                        </viz.data:FlattenedDataset>
+                                    </viz:dataset>
+
+                                    <viz:feeds>
+                                        <viz.feeds:FeedItem
+                                            id="riskChartSizeFeed"
+                                            uid="size"
+                                            type="Measure"
+                                            values="Count" />
+
+                                        <viz.feeds:FeedItem
+                                            id="riskChartColorFeed"
+                                            uid="color"
+                                            type="Dimension"
+                                            values="Risk Level" />
+                                    </viz:feeds>
+
+                                </viz:VizFrame>
+                            </Panel>
+
+                            <Panel
+                                id="approvalStatusPanel"
+                                headerText="Approval Status"
+                                class="chartCard">
+
+                                <viz:VizFrame
+                                    id="statusChart"
+                                    vizType="column"
+                                    width="100%"
+                                    height="320px">
+
+                                    <viz:dataset>
+                                        <viz.data:FlattenedDataset
+                                            id="statusChartDataset"
+                                            data="{status>/items}">
+
+                                            <viz.data:dimensions>
+                                                <viz.data:DimensionDefinition
+                                                    id="statusChartStatusDimension"
+                                                    name="Status"
+                                                    value="{status>status}" />
+                                            </viz.data:dimensions>
+
+                                            <viz.data:measures>
+                                                <viz.data:MeasureDefinition
+                                                    id="statusChartCountMeasure"
+                                                    name="Count"
+                                                    value="{status>count}" />
+                                            </viz.data:measures>
+
+                                        </viz.data:FlattenedDataset>
+                                    </viz:dataset>
+
+                                    <viz:feeds>
+                                        <viz.feeds:FeedItem
+                                            id="statusChartValueAxisFeed"
+                                            uid="valueAxis"
+                                            type="Measure"
+                                            values="Count" />
+
+                                        <viz.feeds:FeedItem
+                                            id="statusChartCategoryAxisFeed"
+                                            uid="categoryAxis"
+                                            type="Dimension"
+                                            values="Status" />
+                                    </viz:feeds>
+
+                                </viz:VizFrame>
+                            </Panel>
+
+                            <Panel
+                                id="vendorSpendPanel"
+                                headerText="Top Vendors by Spend"
+                                class="chartCardWide">
+
+                                <viz:VizFrame
+                                    id="vendorChart"
+                                    vizType="bar"
+                                    width="100%"
+                                    height="380px">
+
+                                    <viz:dataset>
+                                        <viz.data:FlattenedDataset
+                                            id="vendorChartDataset"
+                                            data="{vendor>/items}">
+
+                                            <viz.data:dimensions>
+                                                <viz.data:DimensionDefinition
+                                                    id="vendorChartVendorDimension"
+                                                    name="Vendor"
+                                                    value="{vendor>vendorName}" />
+                                            </viz.data:dimensions>
+
+                                            <viz.data:measures>
+                                                <viz.data:MeasureDefinition
+                                                    id="vendorChartTotalSpendMeasure"
+                                                    name="Total Spend"
+                                                    value="{vendor>totalSpend}" />
+                                            </viz.data:measures>
+
+                                        </viz.data:FlattenedDataset>
+                                    </viz:dataset>
+
+                                    <viz:feeds>
+                                        <viz.feeds:FeedItem
+                                            id="vendorChartValueAxisFeed"
+                                            uid="valueAxis"
+                                            type="Measure"
+                                            values="Total Spend" />
+
+                                        <viz.feeds:FeedItem
+                                            id="vendorChartCategoryAxisFeed"
+                                            uid="categoryAxis"
+                                            type="Dimension"
+                                            values="Vendor" />
+                                    </viz:feeds>
+
+                                </viz:VizFrame>
+                            </Panel>
+
+                            <Panel
+                                id="aiRecommendationPanel"
+                                headerText="AI Recommendation Breakdown"
+                                class="chartCard">
+
+                                <viz:VizFrame
+                                    id="recommendationChart"
+                                    vizType="donut"
+                                    width="100%"
+                                    height="320px">
+
+                                    <viz:dataset>
+                                        <viz.data:FlattenedDataset
+                                            id="recommendationChartDataset"
+                                            data="{recommendation>/items}">
+
+                                            <viz.data:dimensions>
+                                                <viz.data:DimensionDefinition
+                                                    id="recommendationChartRecommendationDimension"
+                                                    name="Recommendation"
+                                                    value="{recommendation>recommendation}" />
+                                            </viz.data:dimensions>
+
+                                            <viz.data:measures>
+                                                <viz.data:MeasureDefinition
+                                                    id="recommendationChartCountMeasure"
+                                                    name="Count"
+                                                    value="{recommendation>count}" />
+                                            </viz.data:measures>
+
+                                        </viz.data:FlattenedDataset>
+                                    </viz:dataset>
+
+                                    <viz:feeds>
+                                        <viz.feeds:FeedItem
+                                            id="recommendationChartSizeFeed"
+                                            uid="size"
+                                            type="Measure"
+                                            values="Count" />
+
+                                        <viz.feeds:FeedItem
+                                            id="recommendationChartColorFeed"
+                                            uid="color"
+                                            type="Dimension"
+                                            values="Recommendation" />
+                                    </viz:feeds>
+
+                                </viz:VizFrame>
+                            </Panel>
+
+                        </FlexBox>
+
+                        <Panel
+                            id="highRiskPurchaseOrdersPanel"
+                            headerText="High-Risk Purchase Orders"
+                            class="analyticsPanel">
+
+                            <Table
+                                id="highRiskPurchaseOrdersTable"
+                                items="{highRisk>/items}"
+                                growing="true"
+                                growingThreshold="10">
+
+                                <columns>
+                                    <Column id="highRiskPONumberColumn">
+                                        <Text
+                                            id="highRiskPONumberColumnText"
+                                            text="PO Number" />
+                                    </Column>
+
+                                    <Column id="highRiskVendorColumn">
+                                        <Text
+                                            id="highRiskVendorColumnText"
+                                            text="Vendor" />
+                                    </Column>
+
+                                    <Column id="highRiskAmountColumn">
+                                        <Text
+                                            id="highRiskAmountColumnText"
+                                            text="Amount" />
+                                    </Column>
+
+                                    <Column id="highRiskStatusColumn">
+                                        <Text
+                                            id="highRiskStatusColumnText"
+                                            text="Status" />
+                                    </Column>
+
+                                    <Column id="highRiskRiskColumn">
+                                        <Text
+                                            id="highRiskRiskColumnText"
+                                            text="Risk" />
+                                    </Column>
+
+                                    <Column id="highRiskAIRecommendationColumn">
+                                        <Text
+                                            id="highRiskAIRecommendationColumnText"
+                                            text="AI Recommendation" />
+                                    </Column>
+                                </columns>
+
+                                <items>
+                                    <ColumnListItem id="highRiskPurchaseOrderRowTemplate">
+                                        <cells>
+                                            <ObjectIdentifier
+                                                id="highRiskPOObjectIdentifier"
+                                                title="{highRisk>poNumber}"
+                                                text="{highRisk>description}" />
+
+                                            <Text
+                                                id="highRiskVendorText"
+                                                text="{highRisk>vendorName}" />
+
+                                            <ObjectNumber
+                                                id="highRiskAmountObjectNumber"
+                                                number="{path: 'highRisk>amount', formatter: '.formatCurrency'}"
+                                                unit="{highRisk>currency}" />
+
+                                            <ObjectStatus
+                                                id="highRiskStatusObjectStatus"
+                                                text="{highRisk>status}"
+                                                state="{path: 'highRisk>status', formatter: '.stateForStatus'}" />
+
+                                            <ObjectStatus
+                                                id="highRiskRiskObjectStatus"
+                                                text="{highRisk>riskLevel}"
+                                                state="{path: 'highRisk>riskLevel', formatter: '.stateForRisk'}" />
+
+                                            <ObjectStatus
+                                                id="highRiskAIRecommendationObjectStatus"
+                                                text="{highRisk>recommendation}"
+                                                state="{path: 'highRisk>recommendation', formatter: '.stateForRecommendation'}" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+
+                            </Table>
+                        </Panel>
+
+                    </VBox>
+                </ScrollContainer>
+            </content>
+        </Page>
+    </App>
+</mvc:View>

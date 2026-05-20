@@ -1,0 +1,115 @@
+html,
+body,
+#content {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.analyticsPage {
+  background: linear-gradient(135deg, #f5f8ff 0%, #eef3f8 100%);
+}
+
+.dashboardContainer {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1.25rem;
+}
+
+.kpiContainer {
+  width: 100%;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.kpiTile {
+  width: 13rem;
+  border-radius: 1rem;
+  box-shadow: 0 0.35rem 1rem rgba(34, 54, 73, 0.12);
+}
+
+.kpiBlue {
+  border-left: 0.35rem solid #0070f2;
+}
+
+.kpiPurple {
+  border-left: 0.35rem solid #7b61ff;
+}
+
+.kpiRed {
+  border-left: 0.35rem solid #d20a0a;
+}
+
+.kpiOrange {
+  border-left: 0.35rem solid #e9730c;
+}
+
+.kpiCyan {
+  border-left: 0.35rem solid #00a6c8;
+}
+
+.analyticsPanel {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 0.35rem 1rem rgba(34, 54, 73, 0.10);
+}
+
+/* Make chart section use the full dashboard width */
+.chartGrid {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Important: SAPUI5 FlexBox wraps children inside sapMFlexItem */
+.chartGrid > .sapMFlexItem {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.chartCard,
+.chartCardWide {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+  border-radius: 1rem;
+  box-shadow: 0 0.35rem 1rem rgba(34, 54, 73, 0.10);
+}
+
+.chartCard .sapMPanelContent,
+.chartCardWide .sapMPanelContent,
+.analyticsPanel .sapMPanelContent {
+  background: #ffffff;
+}
+
+.purchaseOrderNavButton {
+  border-radius: 1.5rem;
+  font-weight: 600;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 112, 242, 0.25);
+}
+
+.purchaseOrderNavButton .sapMBtnInner {
+  border-radius: 1.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.analyticsPage .sapMBar {
+  box-shadow: 0 0.15rem 0.5rem rgba(34, 54, 73, 0.12);
+}
+
+/* Responsive behavior */
+@media screen and (max-width: 1100px) {
+  .chartGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpiTile {
+    width: 100%;
+  }
+}
