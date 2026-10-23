@@ -544,105 +544,11 @@ curl http://localhost:4004/odata/v4/po/RiskDistribution
 
 ---
 
-## Demo Flow
 
-Use this flow while presenting the project:
 
-1. Open the application.
-2. Show that the Analytics Dashboard opens first.
-3. Explain KPI cards:
-   - Total POs
-   - Total Spend
-   - High Risk
-   - Pending
-   - AI Pending
-4. Explain charts:
-   - Risk Distribution
-   - Approval Status
-   - Top Vendors by Spend
-   - AI Recommendation Breakdown
-5. Click **View Purchase Orders**.
-6. Select a pending purchase order.
-7. Click **Generate AI Insights**.
-8. Show the AI-generated:
-   - Risk Summary
-   - AI Recommendation
-   - AI Reason
-   - Risk Level
-9. Approve or reject the purchase order.
-10. Return to the Analytics Dashboard and refresh the analytics.
 
----
 
-## Screenshots
 
-Create this folder:
-
-```text
-docs/screenshots/
-```
-
-Recommended screenshots:
-
-```text
-docs/screenshots/analytics-dashboard.png
-docs/screenshots/purchase-order-list.png
-docs/screenshots/ai-insight-generated.png
-docs/screenshots/object-page-details.png
-docs/screenshots/hana-imported-data.png
-```
-
-Then add screenshots like this:
-
-### Analytics Dashboard
-
-![Analytics Dashboard](docs/screenshots/analytics-dashboard.png)
-
-### Purchase Order List
-
-![Purchase Order List](docs/screenshots/purchase-order-list.png)
-
-### AI Insight Generation
-
-![AI Insight Generation](docs/screenshots/ai-insight-generated.png)
-
-### Object Page Details
-
-![Object Page Details](docs/screenshots/object-page-details.png)
-
----
-
-## Business Value
-
-This project demonstrates how procurement teams can use SAP and AI to:
-
-- Reduce manual purchase order review effort
-- Identify high-risk purchase orders quickly
-- Improve approval decision consistency
-- Centralize live procurement data in SAP HANA Cloud
-- Provide real-time procurement visibility through dashboards
-- Combine operational workflow with analytics and AI insights
-- Support business users with clear recommendations and explanations
-
----
-
-## Technical Highlights
-
-- SAP CAP domain modeling using CDS
-- SAP HANA Cloud persistence
-- OData V4 service exposure
-- SAP Fiori Elements List Report and Object Page
-- Custom SAPUI5 analytics dashboard
-- SAPUI5 VizFrame chart integration
-- Controlled external API data loading
-- HANA-backed import state tracking
-- Duplicate prevention using external award IDs
-- AI-generated structured JSON insights
-- Backend validation for approve/reject actions
-- Dashboard-first application experience
-- Git-based version control
-
----
 
 ## Current Limitations
 
