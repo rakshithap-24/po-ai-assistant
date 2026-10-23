@@ -73,6 +73,27 @@ function normalizeRiskLevel(value) {
   return "Medium";
 }
 
+function normalizeConfidence(value) {
+  const confidence = Number(value);
+  return Number.isFinite(confidence)
+    ? Math.min(1, Math.max(0, confidence))
+    : 0;
+}
+
+function normalizeEvidence(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((item) => item && typeof item === "object")
+    .slice(0, 8)
+    .map((item) => ({
+      observation: limitText(item.observation, 300, "Evidence not available."),
+      source: limitText(item.source, 100, "Purchase order data")
+    }));
+}
+
 /**
  * Generates structured AI insight for a Purchase Order.
  *
@@ -115,7 +136,9 @@ Use exactly this JSON structure:
   "riskSummary": "Short business risk summary under 500 characters",
   "recommendation": "Approve",
   "riskLevel": "Low",
-  "reason": "Short business reason under 500 characters"
+  "reason": "Short business reason under 500 characters",
+  "confidence": 0.75,
+  "evidence": [{"observation": "Evidence from supplied order data", "source": "Purchase order data"}]
 }
 
 Rules:
@@ -123,6 +146,8 @@ Rules:
 - riskLevel must be exactly one of: Low, Medium, High.
 - riskSummary must be short enough to store in a database column.
 - reason must be short, business-friendly, and suitable for an SAP approval workflow.
+- confidence must be a number from 0 to 1 and reflect uncertainty; do not imply statistical calibration.
+- evidence must contain only observations grounded in the supplied purchase order fields, with a short source label.
 `;
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -134,7 +159,7 @@ Rules:
       "X-Title": "AI Purchase Order Assistant"
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || "anthropic/claude-opus-4.6-fast",
+      model: process.env.OPENROUTER_MODEL || "openai/gpt-4.1-mini",
       messages: [
         {
           role: "user",
@@ -170,7 +195,9 @@ Rules:
       riskSummary: aiText.substring(0, 500),
       recommendation: "Review",
       riskLevel: "Medium",
-      reason: "AI response could not be parsed into structured JSON."
+      reason: "AI response could not be parsed into structured JSON.",
+      confidence: 0,
+      evidence: []
     };
   }
 
@@ -186,7 +213,9 @@ Rules:
       parsedInsight.reason,
       500,
       "AI reason not available."
-    )
+    ),
+    confidence: normalizeConfidence(parsedInsight.confidence),
+    evidence: normalizeEvidence(parsedInsight.evidence)
   };
 }
 

@@ -5,7 +5,8 @@
     "@anthropic-ai/sdk": "^0.91.1",
     "@cap-js/hana": "^2",
     "@sap/cds": "^9",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "@sap/xssec": "^4"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^2",
@@ -14,13 +15,33 @@
   },
   "scripts": {
     "start": "cds-serve",
-    "watch-purchaseorderui": "cds watch --open po.assistant.purchaseorderui/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-purchaseorderui": "cds watch --open po.assistant.purchaseorderui/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "test": "node --test test/*.test.js",
+    "build": "cds build --production && npm run build:ui",
+    "build:ui": "cd app/purchaseorderui && ui5 build --all --dest ../../approuter/resources --clean-dest"
   },
   "private": true,
   "cds": {
     "requires": {
+      "[development]": {
+        "auth": {
+          "kind": "dummy"
+        },
+        "db": {
+          "kind": "sqlite",
+          "credentials": {
+            "url": "db.sqlite"
+          }
+        }
+      },
       "[hybrid]": {
         "db": "hana"
+      },
+      "[production]": {
+        "auth": "xsuaa",
+        "db": {
+          "kind": "hana"
+        }
       }
     }
   },

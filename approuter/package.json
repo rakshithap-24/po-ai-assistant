@@ -1,0 +1,10 @@
+{
+  "name": "ai-purchase-order-assistant-approuter",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/@sap/approuter/approuter.js"
+  },
+  "dependencies": {
+    "@sap/approuter": "^23.3.0"
+  }
+}

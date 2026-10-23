@@ -21,7 +21,7 @@
         "type": "OData",
         "settings": {
           "annotations": [],
-          "odataVersion": "4.01"
+          "odataVersion": "4.0"
         }
       }
     },
@@ -74,7 +74,9 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "po.assistant.purchaseorderui.i18n.i18n"
+          "bundleName": "po.assistant.purchaseorderui.i18n.i18n",
+          "supportedLocales": ["en"],
+          "fallbackLocale": "en"
         }
       },
       "": {
@@ -92,7 +94,11 @@
       }
     },
     "resources": {
-      "css": []
+      "css": [
+        {
+          "uri": "css/analytics.css"
+        }
+      ]
     },
     "routing": {
       "config": {},

@@ -1,0 +1,41 @@
+{
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.POUser",
+      "description": "View purchase orders and analytics"
+    },
+    {
+      "name": "$XSAPPNAME.POApprover",
+      "description": "Generate insights and approve or reject purchase orders"
+    },
+    {
+      "name": "$XSAPPNAME.POAdmin",
+      "description": "Import and synchronize procurement data"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "PurchaseOrderUser",
+      "description": "Read-only purchase order access",
+      "scope-references": ["$XSAPPNAME.POUser"]
+    },
+    {
+      "name": "PurchaseOrderApprover",
+      "description": "Review and decide purchase orders",
+      "scope-references": [
+        "$XSAPPNAME.POUser",
+        "$XSAPPNAME.POApprover"
+      ]
+    },
+    {
+      "name": "PurchaseOrderAdministrator",
+      "description": "Manage procurement imports and purchase orders",
+      "scope-references": [
+        "$XSAPPNAME.POUser",
+        "$XSAPPNAME.POApprover",
+        "$XSAPPNAME.POAdmin"
+      ]
+    }
+  ]
+}

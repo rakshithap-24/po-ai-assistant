@@ -78,6 +78,11 @@ annotate service.PurchaseOrder with @(
     },
     {
         $Type : 'UI.DataFieldForAction',
+        Label : 'Submit for Approval',
+        Action : 'POService.submitForApproval'
+    },
+    {
+        $Type : 'UI.DataFieldForAction',
         Label : 'Reject',
         Action : 'POService.rejectPO'
     },
@@ -153,6 +158,11 @@ annotate service.PurchaseOrder with @(
             },
             {
                 $Type: 'UI.DataField',
+                Label: 'AI Confidence',
+                Value: aiConfidence
+            },
+            {
+                $Type: 'UI.DataField',
                 Label: 'AI Recommendation',
                 Value: aiRecommendation
             },
@@ -165,6 +175,11 @@ annotate service.PurchaseOrder with @(
                 $Type: 'UI.DataField',
                 Label: 'AI Reason',
                 Value: aiReason
+            },
+            {
+                $Type: 'UI.DataField',
+                Label: 'AI Evidence',
+                Value: aiEvidence
             },
             {
                 $Type: 'UI.DataField',

@@ -3,6 +3,7 @@
     controllerName="po.assistant.purchaseorderui.ext.controller.AnalyticsDashboard"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
+    xmlns:core="sap.ui.core"
     xmlns:viz="sap.viz.ui5.controls"
     xmlns:viz.data="sap.viz.ui5.data"
     xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds">
@@ -54,10 +55,18 @@
 
                         <MessageStrip
                             id="analyticsInfoMessageStrip"
-                            text="Live procurement records are imported into SAP HANA Cloud and analyzed using AI-based purchase order risk insights."
+                            text="External federal award data from USAspending.gov. Risk stays unassessed until a reviewer generates an AI assessment."
                             type="Information"
                             showIcon="true"
                             class="sapUiSmallMarginBottom" />
+
+                        <ProgressIndicator
+                            id="datasetImportProgress"
+                            visible="{importProgress>/visible}"
+                            percentValue="{importProgress>/percent}"
+                            displayValue="{importProgress>/message}"
+                            state="Information"
+                            class="importProgress" />
 
                         <FlexBox
                             id="kpiFlexBox"
@@ -67,8 +76,11 @@
                             <GenericTile
                                 id="totalPOsTile"
                                 header="Total POs"
-                                subheader="All purchase orders"
+                                subheader="In this dataset"
+                                press=".onKpiPress"
+                                tooltip="Show all orders"
                                 class="kpiTile kpiBlue">
+                                <customData><core:CustomData key="queueFilter" value="All" /></customData>
                                 <tileContent>
                                     <TileContent id="totalPOsTileContent">
                                         <content>
@@ -85,8 +97,11 @@
                             <GenericTile
                                 id="totalSpendTile"
                                 header="Total Spend"
-                                subheader="USD procurement value"
+                                subheader="Award value"
+                                press=".onKpiPress"
+                                tooltip="Show all orders"
                                 class="kpiTile kpiPurple">
+                                <customData><core:CustomData key="queueFilter" value="All" /></customData>
                                 <tileContent>
                                     <TileContent id="totalSpendTileContent">
                                         <content>
@@ -104,8 +119,11 @@
                             <GenericTile
                                 id="highRiskTile"
                                 header="High Risk"
-                                subheader="Needs attention"
+                                subheader="Assessed only"
+                                press=".onKpiPress"
+                                tooltip="Show high-risk orders"
                                 class="kpiTile kpiRed">
+                                <customData><core:CustomData key="queueFilter" value="High risk" /></customData>
                                 <tileContent>
                                     <TileContent id="highRiskTileContent">
                                         <content>
@@ -122,8 +140,11 @@
                             <GenericTile
                                 id="pendingTile"
                                 header="Pending"
-                                subheader="Awaiting decision"
+                                subheader="Awaiting review"
+                                press=".onKpiPress"
+                                tooltip="Show pending orders"
                                 class="kpiTile kpiOrange">
+                                <customData><core:CustomData key="queueFilter" value="Pending" /></customData>
                                 <tileContent>
                                     <TileContent id="pendingTileContent">
                                         <content>
@@ -140,8 +161,11 @@
                             <GenericTile
                                 id="aiPendingTile"
                                 header="AI Pending"
-                                subheader="Needs AI review"
+                                subheader="Assessment needed"
+                                press=".onKpiPress"
+                                tooltip="Show orders without an AI assessment"
                                 class="kpiTile kpiCyan">
+                                <customData><core:CustomData key="queueFilter" value="AI review" /></customData>
                                 <tileContent>
                                     <TileContent id="aiPendingTileContent">
                                         <content>
@@ -158,6 +182,60 @@
                         </FlexBox>
 
                         <Panel
+                            id="reviewQueuePanel"
+                            headerText="Purchase Order Review"
+                            class="analyticsPanel reviewQueuePanel">
+                            <Toolbar id="reviewQueueToolbar" design="Transparent">
+                                <SegmentedButton id="reviewQueueFilter" selectedKey="All" selectionChange=".onQueueFilterChange">
+                                    <items>
+                                        <SegmentedButtonItem id="queueAllFilter" key="All" text="All" />
+                                        <SegmentedButtonItem id="queuePendingFilter" key="Pending" text="Pending" />
+                                        <SegmentedButtonItem id="queueHighRiskFilter" key="High risk" text="High risk" />
+                                        <SegmentedButtonItem id="queueAIReviewFilter" key="AI review" text="AI review" />
+                                        <SegmentedButtonItem id="queueOverdueFilter" key="Overdue" text="Overdue" />
+                                    </items>
+                                </SegmentedButton>
+                                <ToolbarSpacer />
+                                <Label id="reviewQueueSortLabel" text="Sort" labelFor="reviewQueueSort" />
+                                <Select id="reviewQueueSort" selectedKey="amount-desc" change=".onQueueSortChange" width="12rem">
+                                    <items>
+                                        <core:Item key="amount-desc" text="Amount: high to low" />
+                                        <core:Item key="amount-asc" text="Amount: low to high" />
+                                        <core:Item key="risk" text="Risk" />
+                                        <core:Item key="recent" text="Newest" />
+                                    </items>
+                                </Select>
+                            </Toolbar>
+                            <Table
+                                id="reviewQueueTable"
+                                items="{reviewQueue>/items}"
+                                growing="true"
+                                growingThreshold="20"
+                                noDataText="No orders match this filter.">
+                                <columns>
+                                    <Column id="reviewQueuePOColumn"><Text id="reviewQueuePOHeading" text="Purchase Order" /></Column>
+                                    <Column id="reviewQueueVendorColumn" minScreenWidth="Tablet" demandPopin="true"><Text id="reviewQueueVendorHeading" text="Vendor" /></Column>
+                                    <Column id="reviewQueueAmountColumn" hAlign="End"><Text id="reviewQueueAmountHeading" text="Amount" /></Column>
+                                    <Column id="reviewQueueStatusColumn" minScreenWidth="Tablet" demandPopin="true"><Text id="reviewQueueStatusHeading" text="Status" /></Column>
+                                    <Column id="reviewQueueRiskColumn" minScreenWidth="Tablet" demandPopin="true"><Text id="reviewQueueRiskHeading" text="Risk" /></Column>
+                                    <Column id="reviewQueueRecommendationColumn" minScreenWidth="Desktop" demandPopin="true"><Text id="reviewQueueRecommendationHeading" text="AI recommendation" /></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem id="reviewQueueRow" type="Navigation" press=".onQueueItemPress">
+                                        <cells>
+                                            <ObjectIdentifier id="reviewQueuePONumber" title="{reviewQueue>poNumber}" text="{reviewQueue>description}" />
+                                            <Text id="reviewQueueVendor" text="{reviewQueue>vendor/name}" />
+                                            <ObjectNumber id="reviewQueueAmount" number="{path: 'reviewQueue>amount', formatter: '.formatCurrency'}" unit="{reviewQueue>currency}" />
+                                            <ObjectStatus id="reviewQueueStatus" text="{reviewQueue>status}" state="{path: 'reviewQueue>status', formatter: '.stateForStatus'}" />
+                                            <ObjectStatus id="reviewQueueRisk" text="{path: 'reviewQueue>riskLevel', formatter: '.formatRiskLabel'}" state="{path: 'reviewQueue>riskLevel', formatter: '.stateForRisk'}" />
+                                            <ObjectStatus id="reviewQueueRecommendation" text="{reviewQueue>aiRecommendation}" state="{path: 'reviewQueue>aiRecommendation', formatter: '.stateForRecommendation'}" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </Panel>
+
+                        <Panel
                             id="liveImportStatusPanel"
                             headerText="Live Import Status"
                             expandable="false"
@@ -166,6 +244,13 @@
                             <HBox
                                 id="liveImportStatusHBox"
                                 wrap="Wrap">
+
+                                <ObjectStatus
+                                    id="liveImportRecordCountStatus"
+                                    title="Records loaded"
+                                    text="{import>/loadedCount}"
+                                    state="Success"
+                                    class="sapUiSmallMarginEnd" />
 
                                 <ObjectStatus
                                     id="liveImportSourceStatus"
@@ -191,8 +276,16 @@
                                 <ObjectStatus
                                     id="liveImportLastRunStatus"
                                     title="Last Run"
-                                    text="{import>/lastRunAt}"
+                                    text="{path: 'import>/lastRunAt', formatter: '.formatImportDate'}"
                                     state="None" />
+
+                                <Button
+                                    id="loadMoreDataButton"
+                                    text="Load 500 more"
+                                    icon="sap-icon://download"
+                                    type="Emphasized"
+                                    enabled="{= ${import>/loadedCount} &lt; 5000 }"
+                                    press=".onLoadMoreData" />
                             </HBox>
 
                         </Panel>
@@ -404,6 +497,45 @@
 
                         </FlexBox>
 
+                        <FlexBox id="trendGridFlexBox" wrap="Wrap" class="chartGrid trendGrid">
+                            <Panel id="monthlySpendTrendPanel" headerText="Monthly Award Value" class="chartCard">
+                                <viz:VizFrame id="monthlySpendTrendChart" vizType="line" width="100%" height="300px">
+                                    <viz:dataset>
+                                        <viz.data:FlattenedDataset id="monthlySpendTrendDataset" data="{trends>/items}">
+                                            <viz.data:dimensions>
+                                                <viz.data:DimensionDefinition id="monthlySpendMonthDimension" name="Month" value="{trends>month}" />
+                                            </viz.data:dimensions>
+                                            <viz.data:measures>
+                                                <viz.data:MeasureDefinition id="monthlySpendMeasure" name="Award Value" value="{trends>totalSpend}" />
+                                            </viz.data:measures>
+                                        </viz.data:FlattenedDataset>
+                                    </viz:dataset>
+                                    <viz:feeds>
+                                        <viz.feeds:FeedItem id="monthlySpendValueFeed" uid="valueAxis" type="Measure" values="Award Value" />
+                                        <viz.feeds:FeedItem id="monthlySpendCategoryFeed" uid="categoryAxis" type="Dimension" values="Month" />
+                                    </viz:feeds>
+                                </viz:VizFrame>
+                            </Panel>
+                            <Panel id="approvalTurnaroundTrendPanel" headerText="Average Approval Time" class="chartCard">
+                                <viz:VizFrame id="approvalTurnaroundTrendChart" vizType="column" width="100%" height="300px">
+                                    <viz:dataset>
+                                        <viz.data:FlattenedDataset id="approvalTurnaroundTrendDataset" data="{trends>/items}">
+                                            <viz.data:dimensions>
+                                                <viz.data:DimensionDefinition id="approvalTurnaroundMonthDimension" name="Month" value="{trends>month}" />
+                                            </viz.data:dimensions>
+                                            <viz.data:measures>
+                                                <viz.data:MeasureDefinition id="approvalTurnaroundDaysMeasure" name="Average Days" value="{trends>averageApprovalDays}" />
+                                            </viz.data:measures>
+                                        </viz.data:FlattenedDataset>
+                                    </viz:dataset>
+                                    <viz:feeds>
+                                        <viz.feeds:FeedItem id="approvalTurnaroundValueFeed" uid="valueAxis" type="Measure" values="Average Days" />
+                                        <viz.feeds:FeedItem id="approvalTurnaroundCategoryFeed" uid="categoryAxis" type="Dimension" values="Month" />
+                                    </viz:feeds>
+                                </viz:VizFrame>
+                            </Panel>
+                        </FlexBox>
+
                         <Panel
                             id="highRiskPurchaseOrdersPanel"
                             headerText="High-Risk Purchase Orders"
@@ -488,6 +620,82 @@
                                     </ColumnListItem>
                                 </items>
 
+                            </Table>
+                        </Panel>
+
+                        <Panel
+                            id="approvalQueuePanel"
+                            headerText="My Approval Queue"
+                            class="analyticsPanel">
+                            <Table id="approvalQueueTable" items="{approvalQueue>/items}" growing="true" growingThreshold="10">
+                                <columns>
+                                    <Column id="approvalTaskSequenceColumn"><Text id="approvalTaskSequenceHeading" text="Stage" /></Column>
+                                    <Column id="approvalTaskStatusColumn"><Text id="approvalTaskStatusHeading" text="Status" /></Column>
+                                    <Column id="approvalTaskDueColumn"><Text id="approvalTaskDueHeading" text="Due" /></Column>
+                                    <Column id="approvalTaskOrderColumn"><Text id="approvalTaskOrderHeading" text="Purchase Order" /></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem id="approvalTaskRow">
+                                        <cells>
+                                            <Text id="approvalTaskSequence" text="{approvalQueue>sequence}" />
+                                            <ObjectStatus id="approvalTaskStatus" text="{approvalQueue>status}" state="Warning" />
+                                            <Text id="approvalTaskDue" text="{approvalQueue>dueAt}" />
+                                            <Text id="approvalTaskOrder" text="{approvalQueue>purchaseOrder_ID}" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </Panel>
+
+                        <Panel
+                            id="recentAuditPanel"
+                            headerText="Recent Review Activity"
+                            class="analyticsPanel">
+                            <Table id="auditEventsTable" items="{auditEvents>/items}" growing="true" growingThreshold="10">
+                                <columns>
+                                    <Column id="auditEventTypeColumn"><Text id="auditEventTypeHeading" text="Event" /></Column>
+                                    <Column id="auditActorColumn"><Text id="auditActorHeading" text="Actor" /></Column>
+                                    <Column id="auditTimeColumn"><Text id="auditTimeHeading" text="When" /></Column>
+                                    <Column id="auditOrderColumn"><Text id="auditOrderHeading" text="Purchase Order" /></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem id="auditEventRow">
+                                        <cells>
+                                            <Text id="auditEventType" text="{auditEvents>eventType}" />
+                                            <Text id="auditActor" text="{auditEvents>actor}" />
+                                            <Text id="auditTime" text="{auditEvents>createdAt}" />
+                                            <Text id="auditOrder" text="{auditEvents>purchaseOrder_ID}" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </Panel>
+
+                        <Panel
+                            id="procurementAnomaliesPanel"
+                            headerText="Spend Anomalies"
+                            class="analyticsPanel">
+                            <Table id="procurementAnomaliesTable" items="{anomalies>/items}" growing="true" growingThreshold="20">
+                                <columns>
+                                    <Column id="anomalySeverityColumn"><Text id="anomalySeverityHeading" text="Severity" /></Column>
+                                    <Column id="anomalyTypeColumn"><Text id="anomalyTypeHeading" text="Finding" /></Column>
+                                    <Column id="anomalyOrderColumn"><Text id="anomalyOrderHeading" text="Purchase Order" /></Column>
+                                    <Column id="anomalyVendorColumn"><Text id="anomalyVendorHeading" text="Vendor" /></Column>
+                                    <Column id="anomalyAmountColumn"><Text id="anomalyAmountHeading" text="Amount" /></Column>
+                                    <Column id="anomalyDetailsColumn"><Text id="anomalyDetailsHeading" text="Details" /></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem id="procurementAnomalyRow">
+                                        <cells>
+                                            <ObjectStatus id="anomalySeverity" text="{anomalies>severity}" state="{path: 'anomalies>severity', formatter: '.stateForRisk'}" />
+                                            <Text id="anomalyType" text="{anomalies>anomalyType}" />
+                                            <Text id="anomalyOrder" text="{anomalies>poNumber}" />
+                                            <Text id="anomalyVendor" text="{anomalies>vendorName}" />
+                                            <ObjectNumber id="anomalyAmount" number="{path: 'anomalies>amount', formatter: '.formatCurrency'}" unit="{anomalies>currency}" />
+                                            <Text id="anomalyDetails" text="{anomalies>details}" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
                             </Table>
                         </Panel>
 
